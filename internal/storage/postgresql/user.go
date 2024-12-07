@@ -3,6 +3,7 @@ package postgresql
 import (
 	"context"
 	"fmt"
+	"github.com/mpu-cad/gw-backend-go/internal/logger"
 
 	"github.com/pkg/errors"
 
@@ -39,11 +40,22 @@ func (u *UserRepos) InsertUser(ctx context.Context, user models.User) (*int, err
 	}
 
 	defer func() {
-		_ = transaction.Rollback(ctx)
+		err = transaction.Rollback(ctx)
+		logger.Log.Errorf("rollback tx, err: %v", err)
 	}()
 
 	var res int
-	err = transaction.QueryRow(ctx, query, user.Name, user.Surname, user.Email, user.Phone, user.HashPass).Scan(&res)
+	err = transaction.QueryRow(
+		ctx,
+		query,
+		user.Name,
+		user.Surname,
+		user.LastName,
+		user.Login,
+		user.Email,
+		user.Phone,
+		user.HashPass,
+	).Scan(&res)
 	if err != nil {
 		return nil, fmt.Errorf("can not scan UserRepos for db: %w", err)
 	}
