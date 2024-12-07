@@ -2,14 +2,19 @@ package configure
 
 import (
 	"context"
+	"github.com/mpu-cad/gw-backend-go/internal/logger"
 
 	"github.com/jackc/pgx/v4/pgxpool"
 
-	"github.com/vpbuyanov/gw-backend-go/internal/configs"
+	"github.com/mpu-cad/gw-backend-go/internal/configs"
 )
 
 func Postgres(ctx context.Context, cfg configs.Postgres) *pgxpool.Pool {
 	pool, err := pgxpool.Connect(ctx, cfg.String())
+
+	logger.Log.Info(cfg.String())
+	logger.Log.Info(err)
+
 	if err != nil {
 		panic("no connect to database")
 	}

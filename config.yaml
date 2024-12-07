@@ -1,9 +1,9 @@
 postgres:
   host: localhost
-  port: 5432
-  user: postgres
-  password: postgres
-  dbname: postgres
+  port: 6000
+  user: vpbuyanov
+  password: sevabuyanov
+  dbname: gw
 
 redis:
   host: localhost
@@ -19,6 +19,6 @@ JWT:
   secret: asd
 
 mailer:
-  name: SAPR ROAD
-  from_email_address: vpbuyanovv@gmail.com
-  from_email_password: umpuwkthejjgvssf
+  name: info learnio
+  from_email_address: info@learnio.space
+  from_email_password: pifrzyidqyeyyucd

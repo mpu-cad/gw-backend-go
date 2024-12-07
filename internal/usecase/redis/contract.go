@@ -3,7 +3,7 @@ package redis
 import (
 	"context"
 
-	"github.com/vpbuyanov/gw-backend-go/internal/models"
+	"github.com/mpu-cad/gw-backend-go/internal/models"
 )
 
 type repos interface {

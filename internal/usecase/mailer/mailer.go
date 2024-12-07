@@ -1,18 +1,21 @@
 package mailer
 
 import (
+	"crypto/tls"
 	"fmt"
 	"net/smtp"
 
 	"github.com/jordan-wright/email"
 
-	"github.com/vpbuyanov/gw-backend-go/internal/configs"
-	"github.com/vpbuyanov/gw-backend-go/internal/models"
+	"github.com/mpu-cad/gw-backend-go/internal/configs"
+	"github.com/mpu-cad/gw-backend-go/internal/models"
 )
 
 const (
-	smtpAuthAddress   = "smtp.gmail.com"
-	smtpServerAddress = "smtp.gmail.com:587"
+	// Адрес SMTP-сервера Яндекса
+	smtpAuthAddress = "smtp.yandex.ru"
+	// Порт и сервер для подключения
+	smtpServerAddress = "smtp.yandex.ru:465"
 )
 
 type Mailer struct {
@@ -45,6 +48,7 @@ func (m *Mailer) SendEmail(gmail models.Gmail) error {
 	e.Cc = gmail.CC
 	e.Bcc = gmail.BCC
 
+	// Прикрепление файлов (если есть)
 	for i := range gmail.AttachFiles {
 		_, err := e.AttachFile(gmail.AttachFiles[i])
 		if err != nil {
@@ -52,8 +56,12 @@ func (m *Mailer) SendEmail(gmail models.Gmail) error {
 		}
 	}
 
+	// Используем SMTP с TLS
 	smtpAuth := smtp.PlainAuth("", m.fromEmailAddress, m.fromEmailPassword, smtpAuthAddress)
-	if err := e.Send(smtpServerAddress, smtpAuth); err != nil {
+	if err := e.SendWithTLS(smtpServerAddress, smtpAuth, &tls.Config{
+		ServerName:         smtpAuthAddress,
+		InsecureSkipVerify: false,
+	}); err != nil {
 		return fmt.Errorf("cannot send email, err: %w", err)
 	}
 	return nil

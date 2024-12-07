@@ -7,7 +7,7 @@ import (
 
 	"golang.org/x/crypto/bcrypt"
 
-	"github.com/vpbuyanov/gw-backend-go/internal/models"
+	"github.com/mpu-cad/gw-backend-go/internal/models"
 )
 
 type UCUser struct {

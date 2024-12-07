@@ -6,7 +6,7 @@ import (
 
 	"github.com/redis/go-redis/v9"
 
-	"github.com/vpbuyanov/gw-backend-go/internal/entity"
+	"github.com/mpu-cad/gw-backend-go/internal/entity"
 )
 
 type TokenRepos struct {

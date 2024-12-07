@@ -6,7 +6,7 @@ import (
 
 	"github.com/jackc/pgx/v4/pgxpool"
 
-	"github.com/vpbuyanov/gw-backend-go/internal/models"
+	"github.com/mpu-cad/gw-backend-go/internal/models"
 )
 
 const (

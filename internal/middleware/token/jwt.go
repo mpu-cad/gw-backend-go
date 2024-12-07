@@ -8,8 +8,8 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/golang-jwt/jwt/v4"
 
-	"github.com/vpbuyanov/gw-backend-go/internal/configs"
-	"github.com/vpbuyanov/gw-backend-go/internal/entity"
+	"github.com/mpu-cad/gw-backend-go/internal/configs"
+	"github.com/mpu-cad/gw-backend-go/internal/entity"
 )
 
 // SignedToken - подписание JWT для авторизированного пользователя токена.

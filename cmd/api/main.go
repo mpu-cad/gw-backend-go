@@ -3,8 +3,8 @@ package main
 import (
 	"context"
 
-	"github.com/vpbuyanov/gw-backend-go/internal/app"
-	"github.com/vpbuyanov/gw-backend-go/internal/configs"
+	"github.com/mpu-cad/gw-backend-go/internal/app"
+	"github.com/mpu-cad/gw-backend-go/internal/configs"
 )
 
 func main() {

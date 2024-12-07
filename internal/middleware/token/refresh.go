@@ -3,7 +3,7 @@ package token
 import (
 	"crypto/rand"
 
-	"github.com/vpbuyanov/gw-backend-go/internal/entity"
+	"github.com/mpu-cad/gw-backend-go/internal/entity"
 )
 
 func GenerateRefreshToken() string {

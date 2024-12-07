@@ -4,7 +4,7 @@ import (
 	"github.com/mattn/go-colorable"
 	"github.com/sirupsen/logrus"
 
-	"github.com/vpbuyanov/gw-backend-go/internal/configs"
+	"github.com/mpu-cad/gw-backend-go/internal/configs"
 )
 
 var Log = logrus.New()

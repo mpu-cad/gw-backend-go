@@ -19,3 +19,4 @@ golangci-lint
 /deploy/*.env
 /deploy/config.yaml
 
+/bin

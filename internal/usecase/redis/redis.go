@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/vpbuyanov/gw-backend-go/internal/entity"
-	"github.com/vpbuyanov/gw-backend-go/internal/middleware/token"
+	"github.com/mpu-cad/gw-backend-go/internal/entity"
+	"github.com/mpu-cad/gw-backend-go/internal/middleware/token"
 )
 
 type UCRedis struct {

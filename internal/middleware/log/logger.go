@@ -10,7 +10,7 @@ import (
 
 	"github.com/sirupsen/logrus"
 
-	"github.com/vpbuyanov/gw-backend-go/internal/logger"
+	"github.com/mpu-cad/gw-backend-go/internal/logger"
 )
 
 const (

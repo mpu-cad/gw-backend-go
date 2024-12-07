@@ -1,4 +1,4 @@
-module github.com/vpbuyanov/gw-backend-go
+module github.com/mpu-cad/gw-backend-go
 
 go 1.22.4
 

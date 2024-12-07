@@ -1,8 +1,8 @@
 package mailer
 
 import (
-	"github.com/vpbuyanov/gw-backend-go/internal/logger"
-	"github.com/vpbuyanov/gw-backend-go/internal/models"
+	"github.com/mpu-cad/gw-backend-go/internal/logger"
+	"github.com/mpu-cad/gw-backend-go/internal/models"
 )
 
 type BrokerMailer struct {

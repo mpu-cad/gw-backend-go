@@ -5,8 +5,8 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 
-	"github.com/vpbuyanov/gw-backend-go/internal/entity"
-	"github.com/vpbuyanov/gw-backend-go/internal/models"
+	"github.com/mpu-cad/gw-backend-go/internal/entity"
+	"github.com/mpu-cad/gw-backend-go/internal/models"
 )
 
 type Handle struct {
@@ -33,7 +33,7 @@ func (r *Handle) Registration(ctx *fiber.Ctx) error {
 			})
 	}
 
-	id, err := r.userUC.Registration(ctx.Context(), models.User{
+	_, err = r.userUC.Registration(ctx.Context(), models.User{
 		Phone:    data.Phone,
 		Email:    data.Email,
 		HashPass: data.Password,
@@ -49,12 +49,7 @@ func (r *Handle) Registration(ctx *fiber.Ctx) error {
 		})
 	}
 
-	refreshToken := r.redisUC.CreateRefreshToken(ctx.Context(), *id)
-
-	ctx.Locals("UserID", id)
-	ctx.Locals("RefreshToken", refreshToken)
-
-	return ctx.Next()
+	return ctx.Status(http.StatusCreated).Send(nil)
 }
 
 func (r *Handle) Login(ctx *fiber.Ctx) error {

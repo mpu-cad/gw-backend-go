@@ -7,20 +7,20 @@ import (
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 
-	mailerBroker "github.com/vpbuyanov/gw-backend-go/internal/broker/mailer"
-	"github.com/vpbuyanov/gw-backend-go/internal/configs"
-	"github.com/vpbuyanov/gw-backend-go/internal/configure"
-	handle "github.com/vpbuyanov/gw-backend-go/internal/handlers/user"
-	"github.com/vpbuyanov/gw-backend-go/internal/logger"
-	"github.com/vpbuyanov/gw-backend-go/internal/middleware/log"
-	"github.com/vpbuyanov/gw-backend-go/internal/middleware/token"
-	"github.com/vpbuyanov/gw-backend-go/internal/models"
-	"github.com/vpbuyanov/gw-backend-go/internal/service"
-	"github.com/vpbuyanov/gw-backend-go/internal/storage/postgresql"
-	"github.com/vpbuyanov/gw-backend-go/internal/storage/redis"
-	"github.com/vpbuyanov/gw-backend-go/internal/usecase/mailer"
-	redisUC "github.com/vpbuyanov/gw-backend-go/internal/usecase/redis"
-	"github.com/vpbuyanov/gw-backend-go/internal/usecase/user"
+	mailerBroker "github.com/mpu-cad/gw-backend-go/internal/broker/mailer"
+	"github.com/mpu-cad/gw-backend-go/internal/configs"
+	"github.com/mpu-cad/gw-backend-go/internal/configure"
+	handle "github.com/mpu-cad/gw-backend-go/internal/handlers/user"
+	"github.com/mpu-cad/gw-backend-go/internal/logger"
+	"github.com/mpu-cad/gw-backend-go/internal/middleware/log"
+	"github.com/mpu-cad/gw-backend-go/internal/middleware/token"
+	"github.com/mpu-cad/gw-backend-go/internal/models"
+	"github.com/mpu-cad/gw-backend-go/internal/service"
+	"github.com/mpu-cad/gw-backend-go/internal/storage/postgresql"
+	"github.com/mpu-cad/gw-backend-go/internal/storage/redis"
+	"github.com/mpu-cad/gw-backend-go/internal/usecase/mailer"
+	redisUC "github.com/mpu-cad/gw-backend-go/internal/usecase/redis"
+	"github.com/mpu-cad/gw-backend-go/internal/usecase/user"
 )
 
 const (
@@ -76,7 +76,7 @@ func (a *App) Run(ctx context.Context) {
 
 	users := api.Group("/user")
 
-	users.Post("/registration", userHandler.Registration, token.SignedToken)
+	users.Post("/registration", userHandler.Registration)
 	users.Post("/login", userHandler.Login, token.SignedToken)
 
 	// Run

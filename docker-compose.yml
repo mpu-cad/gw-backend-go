@@ -1,25 +1,25 @@
 services:
   postgres:
     image: postgres:latest
-    container_name: postgres
+    container_name: gw-postgres
     restart: unless-stopped
     ports:
-      - "5432:5432"
+      - "6000:5432"
     env_file:
       - .postgres.env
     volumes:
-      - postgres-data:/var/lib/postgresql/data
+      - gw-postgres-data:/var/lib/postgresql/data/pgdata
     networks:
       gw:
 
   redis:
     image: redis:latest
-    container_name: redis
+    container_name: gw-redis
     restart: unless-stopped
-    ports:
-      - "6379:6379"
+    expose:
+      - 6379
     volumes:
-      - redis-data:/data
+      - gw-redis-data:/data
     networks:
       gw:
 
@@ -30,16 +30,17 @@ services:
     ports:
       - "127.0.0.1:8080:8080"
     volumes:
-      - server-data:/var/lib/server/data
+      - gw-backend-go:/var/lib/server/data
+      - ./config.yaml:/config.yaml
     depends_on:
       - postgres
     networks:
       gw:
 
 volumes:
-  redis-data:
-  server-data:
-  postgres-data:
+  gw-redis-data:
+  gw-backend-go:
+  gw-postgres-data:
 
 networks:
   gw:
