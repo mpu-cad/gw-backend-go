@@ -3,8 +3,6 @@ package postgresql
 import (
 	"context"
 	"fmt"
-	"github.com/mpu-cad/gw-backend-go/internal/logger"
-
 	"github.com/pkg/errors"
 
 	"github.com/jackc/pgx/v4/pgxpool"
@@ -30,7 +28,7 @@ func NewUserRepos(db *pgxpool.Pool) *UserRepos {
 func (u *UserRepos) InsertUser(ctx context.Context, user models.User) (*int, error) {
 	const (
 		query = `
-			insert into "users" (name, surname, last_name, email, login ,phone, hash_pass) 
+			insert into "users" (name, surname, last_name, login, email, phone, hash_pass) 
 			values($1, $2, $3, $4, $5, $6, $7) returning id`
 	)
 
@@ -40,8 +38,7 @@ func (u *UserRepos) InsertUser(ctx context.Context, user models.User) (*int, err
 	}
 
 	defer func() {
-		err = transaction.Rollback(ctx)
-		logger.Log.Errorf("rollback tx, err: %v", err)
+		_ = transaction.Rollback(ctx)
 	}()
 
 	var res int
