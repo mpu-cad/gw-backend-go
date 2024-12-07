@@ -12,3 +12,7 @@ type userRepos interface {
 	SelectUserByID(ctx context.Context, id int) (*models.User, error)
 	SelectUserByEmail(ctx context.Context, email string) (*models.User, error)
 }
+
+type mailer interface {
+	SendEmail(gmail models.Gmail) error
+}

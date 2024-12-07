@@ -4,14 +4,16 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/pkg/errors"
+
 	"github.com/jackc/pgx/v4/pgxpool"
 
 	"github.com/mpu-cad/gw-backend-go/internal/models"
 )
 
 const (
-	SelectUserByID    = `SELECT * FROM "user" WHERE id=$1`
-	SelectUserByEmail = `SELECT * FROM "user" WHERE email=$1`
+	SelectUserByID    = `SELECT id, name, surname, last_name, login, email, phone, hash_pass, is_admin, is_blocked FROM "users" WHERE id=$1`
+	SelectUserByEmail = `SELECT id, name, surname, last_name, login, email, phone, hash_pass, is_admin, is_blocked FROM "users" WHERE email=$1`
 )
 
 type UserRepos struct {
@@ -27,8 +29,8 @@ func NewUserRepos(db *pgxpool.Pool) *UserRepos {
 func (u *UserRepos) InsertUser(ctx context.Context, user models.User) (*int, error) {
 	const (
 		query = `
-			insert into "user" (name, surname, email, phone, hash_pass) 
-			values($1, $2, $3, $4, $5) returning id`
+			insert into "users" (name, surname, last_name, email, login ,phone, hash_pass) 
+			values($1, $2, $3, $4, $5, $6, $7) returning id`
 	)
 
 	transaction, err := u.db.Begin(ctx)
@@ -54,36 +56,31 @@ func (u *UserRepos) InsertUser(ctx context.Context, user models.User) (*int, err
 }
 
 func (u *UserRepos) SelectUserByID(ctx context.Context, id int) (*models.User, error) {
-	var getUser models.User
-	err := u.db.QueryRow(ctx, SelectUserByID, id).
-		Scan(
-			&getUser.ID,
-			&getUser.Name,
-			&getUser.Email,
-			&getUser.HashPass,
-			&getUser.IsAdmin)
-
-	if err != nil {
-		return nil, fmt.Errorf("can not scan UserRepos for create db: %w", err)
-	}
-
-	return &getUser, nil
+	return u.getUserFromDB(ctx, SelectUserByID, id)
 }
 
 func (u *UserRepos) SelectUserByEmail(ctx context.Context, email string) (*models.User, error) {
+	return u.getUserFromDB(ctx, SelectUserByEmail, email)
+}
+
+func (u *UserRepos) getUserFromDB(ctx context.Context, query string, arg interface{}) (*models.User, error) {
 	var getUser models.User
-	err := u.db.QueryRow(ctx, SelectUserByEmail, email).Scan(
-		&getUser.ID,
-		&getUser.Name,
-		&getUser.Surname,
-		&getUser.Email,
-		&getUser.Phone,
-		&getUser.HashPass,
-		&getUser.IsAdmin,
-		&getUser.IsBanned)
+	err := u.db.QueryRow(ctx, query, arg).
+		Scan(
+			&getUser.ID,
+			&getUser.Name,
+			&getUser.Surname,
+			&getUser.LastName,
+			&getUser.Email,
+			&getUser.Login,
+			&getUser.Phone,
+			&getUser.HashPass,
+			&getUser.IsAdmin,
+			&getUser.IsBanned,
+		)
 
 	if err != nil {
-		return nil, fmt.Errorf("can not select UserRepos by email: %w", err)
+		return nil, errors.Wrap(err, "get user")
 	}
 
 	return &getUser, nil

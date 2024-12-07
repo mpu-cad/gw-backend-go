@@ -5,18 +5,22 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/mpu-cad/gw-backend-go/internal/logger"
+
 	"golang.org/x/crypto/bcrypt"
 
 	"github.com/mpu-cad/gw-backend-go/internal/models"
 )
 
 type UCUser struct {
-	user userRepos
+	user   userRepos
+	mailer mailer
 }
 
-func NewUCUser(user userRepos) *UCUser {
+func NewUCUser(user userRepos, mailer mailer) *UCUser {
 	return &UCUser{
-		user: user,
+		user:   user,
+		mailer: mailer,
 	}
 }
 
@@ -32,6 +36,18 @@ func (u *UCUser) Registration(ctx context.Context, request models.User) (*int, e
 	if err != nil {
 		return nil, fmt.Errorf("can not insert user, err: %w", err)
 	}
+
+	go func() {
+		if err := u.mailer.SendEmail(models.Gmail{
+			Subject: "Подтверждение пароля",
+			Content: "<h1>Подтверди пароль, Руслан<h1>",
+			TO:      []string{request.Email},
+		}); err != nil {
+			logger.Log.Errorf("send email, err: %v", err)
+		}
+
+		logger.Log.Info("send email")
+	}()
 
 	return id, nil
 }

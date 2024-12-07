@@ -2,29 +2,23 @@ package app
 
 import (
 	"context"
+	"net/http"
 
 	"github.com/gofiber/fiber/v2"
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 
-	mailerBroker "github.com/mpu-cad/gw-backend-go/internal/broker/mailer"
 	"github.com/mpu-cad/gw-backend-go/internal/configs"
 	"github.com/mpu-cad/gw-backend-go/internal/configure"
 	handle "github.com/mpu-cad/gw-backend-go/internal/handlers/user"
 	"github.com/mpu-cad/gw-backend-go/internal/logger"
 	"github.com/mpu-cad/gw-backend-go/internal/middleware/log"
 	"github.com/mpu-cad/gw-backend-go/internal/middleware/token"
-	"github.com/mpu-cad/gw-backend-go/internal/models"
-	"github.com/mpu-cad/gw-backend-go/internal/service"
 	"github.com/mpu-cad/gw-backend-go/internal/storage/postgresql"
 	"github.com/mpu-cad/gw-backend-go/internal/storage/redis"
 	"github.com/mpu-cad/gw-backend-go/internal/usecase/mailer"
 	redisUC "github.com/mpu-cad/gw-backend-go/internal/usecase/redis"
 	"github.com/mpu-cad/gw-backend-go/internal/usecase/user"
-)
-
-const (
-	sizeBufferChannel = 256
 )
 
 type App struct {
@@ -53,20 +47,14 @@ func (a *App) Run(ctx context.Context) {
 
 	redisDB := configure.Redis(a.cfg.Redis)
 
-	// Channel
-	channelMailer := make(chan models.Gmail, sizeBufferChannel)
-
 	// Repos
 	userRepos := postgresql.NewUserRepos(dbPool)
 	redisRepos := redis.NewTokenRepos(redisDB)
 
 	// UseCase
-	ucUser := user.NewUCUser(userRepos)
-	ucMailer := mailer.New(a.cfg.Mailer, channelMailer)
-	ucRedis := redisUC.NewUCRepos(redisRepos)
-
-	// Broker
-	brokerMailer := mailerBroker.NewBrokerMailer(ucMailer, channelMailer)
+	ucMailer := mailer.New(a.cfg.Mailer)
+	ucUser := user.NewUCUser(userRepos, ucMailer)
+	ucRedis := redisUC.NewUCRepos(redisRepos, userRepos)
 
 	// Handler
 	userHandler := handle.NewHandleUser(ucUser, ucRedis)
@@ -74,13 +62,45 @@ func (a *App) Run(ctx context.Context) {
 	// endpoint
 	api := app.Group("/api")
 
+	// эндпоинты для юзеров
 	users := api.Group("/user")
 
 	users.Post("/registration", userHandler.Registration)
 	users.Post("/login", userHandler.Login, token.SignedToken)
 
-	// Run
-	service.RegisterBroker(brokerMailer.Run)
+	// эндпоинты для курсов
+	course := api.Group("/course")
+
+	// получить все курсы
+	course.Get("", func(ctx *fiber.Ctx) error {
+		ctx.Set("Content-Type", "text/html; charset=utf-8")
+		return ctx.Status(http.StatusOK).SendString("<h1>Hello world</h1>")
+	})
+	// получить курс по id
+	course.Get("/:id", func(ctx *fiber.Ctx) error {
+		ctx.Set("Content-Type", "text/html; charset=utf-8")
+		return ctx.Status(http.StatusOK).SendString("<h1>Hello world</h1>")
+	})
+
+	course.Post("", func(ctx *fiber.Ctx) error {
+		ctx.Set("Content-Type", "text/html; charset=utf-8")
+		return ctx.Status(http.StatusOK).SendString("<h1>Hello world</h1>")
+	}) // создать курс
+
+	course.Delete("/:id", func(ctx *fiber.Ctx) error {
+		ctx.Set("Content-Type", "text/html; charset=utf-8")
+		return ctx.Status(http.StatusOK).SendString("<h1>Hello world</h1>")
+	}) // удалить курс
+	course.Put("/:id", func(ctx *fiber.Ctx) error {
+		ctx.Set("Content-Type", "text/html; charset=utf-8")
+		return ctx.Status(http.StatusOK).SendString("<h1>Hello world</h1>")
+	}) // обновить курс
+
+	// эндпоинты для статьей
+	api.Group("/article", func(ctx *fiber.Ctx) error {
+		ctx.Set("Content-Type", "text/html; charset=utf-8")
+		return ctx.Status(http.StatusOK).SendString("<h1>Hello world</h1>")
+	})
 
 	err := app.Listen(a.cfg.Server.String())
 	if err != nil {

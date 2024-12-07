@@ -22,21 +22,14 @@ type Mailer struct {
 	name              string
 	fromEmailAddress  string
 	fromEmailPassword string
-	channelBroker     chan models.Gmail
 }
 
-func New(cfg configs.Mailer, channelBroker chan models.Gmail) *Mailer {
+func New(cfg configs.Mailer) *Mailer {
 	return &Mailer{
 		name:              cfg.Name,
 		fromEmailAddress:  cfg.FromEmailAddress,
 		fromEmailPassword: cfg.FromEmailPassword,
-		channelBroker:     channelBroker,
 	}
-}
-
-func (m *Mailer) SendEmailToBroker(gmail models.Gmail) error {
-	m.channelBroker <- gmail
-	return nil
 }
 
 func (m *Mailer) SendEmail(gmail models.Gmail) error {
@@ -61,8 +54,10 @@ func (m *Mailer) SendEmail(gmail models.Gmail) error {
 	if err := e.SendWithTLS(smtpServerAddress, smtpAuth, &tls.Config{
 		ServerName:         smtpAuthAddress,
 		InsecureSkipVerify: false,
+		MinVersion:         tls.VersionTLS13,
 	}); err != nil {
 		return fmt.Errorf("cannot send email, err: %w", err)
 	}
+
 	return nil
 }

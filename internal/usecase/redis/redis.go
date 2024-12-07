@@ -13,9 +13,10 @@ type UCRedis struct {
 	user  userRepos
 }
 
-func NewUCRepos(repository repos) *UCRedis {
+func NewUCRepos(repository repos, user userRepos) *UCRedis {
 	return &UCRedis{
 		repos: repository,
+		user:  user,
 	}
 }
 
