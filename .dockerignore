@@ -15,3 +15,8 @@ vendor/
 go.work
 
 /deploy
+
+/bin
+
+config.yaml
+.golangci.yml
