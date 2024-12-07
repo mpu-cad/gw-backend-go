@@ -36,6 +36,8 @@ func (r *Handle) Registration(ctx *fiber.Ctx) error {
 	_, err = r.userUC.Registration(ctx.Context(), models.User{
 		Phone:    data.Phone,
 		Email:    data.Email,
+		LastName: data.LastName,
+		Login:    data.Login,
 		HashPass: data.Password,
 		Name:     data.Name,
 		Surname:  data.Surname,
