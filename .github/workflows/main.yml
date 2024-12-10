@@ -43,7 +43,7 @@ jobs:
           go test ./...
 
 
-  golovuncheck:
+  govulncheck:
     runs-on: ubuntu-latest
 
     steps:
@@ -63,7 +63,7 @@ jobs:
     needs:
       - lint
       - test
-      - golovuncheck
+      - govulncheck
 
     steps:
       - name: Build
