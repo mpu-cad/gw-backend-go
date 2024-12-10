@@ -3,6 +3,7 @@ package postgresql
 import (
 	"context"
 	"fmt"
+
 	"github.com/pkg/errors"
 
 	"github.com/jackc/pgx/v4/pgxpool"
