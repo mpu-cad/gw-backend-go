@@ -2,30 +2,30 @@ package user
 
 import (
 	"context"
-	"errors"
+	"crypto/rand"
 	"fmt"
-	"math/rand"
-	"strconv"
 	"strings"
 
 	"github.com/PuerkitoBio/goquery"
-
-	"github.com/mpu-cad/gw-backend-go/internal/logger"
-
+	"github.com/pkg/errors"
 	"golang.org/x/crypto/bcrypt"
 
+	"github.com/mpu-cad/gw-backend-go/internal/entity"
+	"github.com/mpu-cad/gw-backend-go/internal/logger"
 	"github.com/mpu-cad/gw-backend-go/internal/models"
 )
 
 type UCUser struct {
 	user   userRepos
 	mailer mailer
+	redis  redis
 }
 
-func NewUCUser(user userRepos, mailer mailer) *UCUser {
+func NewUCUser(user userRepos, mailer mailer, redis redis) *UCUser {
 	return &UCUser{
 		user:   user,
 		mailer: mailer,
+		redis:  redis,
 	}
 }
 
@@ -42,9 +42,14 @@ func (u *UCUser) Registration(ctx context.Context, request models.User) (*int, e
 		return nil, fmt.Errorf("can not insert user, err: %w", err)
 	}
 
-	go func() {
-		code := generateVerificationCode()
+	if id == nil {
+		return nil, fmt.Errorf("can not insert user, err: %w", err)
+	}
 
+	code := generateVerificationCode()
+	u.redis.SaveUsersRegistrationCode(ctx, code, *id)
+
+	go func(code string) {
 		content := `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -186,15 +191,33 @@ func (u *UCUser) Registration(ctx context.Context, request models.User) (*int, e
 		}
 
 		logger.Log.Info("send email")
-	}()
+	}(code)
 
 	return id, nil
 }
 
-func (u *UCUser) Login(ctx context.Context, email, password string) (*models.User, error) {
-	user, err := u.user.SelectUserByEmail(ctx, email)
+func (u *UCUser) ConfirmMail(ctx context.Context, userID int, code string) error {
+	userCode := u.redis.GetUsersRegistrationCode(ctx, userID)
+
+	if strings.EqualFold(code, userCode) {
+		return errors.New("invalid code")
+	}
+
+	if err := u.user.ConfirmEmail(ctx, userID); err != nil {
+		return errors.Wrap(err, "confirm email")
+	}
+
+	return nil
+}
+
+func (u *UCUser) Login(ctx context.Context, login, password string) (*models.User, error) {
+	user, err := u.user.SelectUserByLogin(ctx, login)
 	if err != nil {
 		return nil, fmt.Errorf("user not found: %w", err)
+	}
+
+	if !user.ConfirmEmail {
+		return nil, fmt.Errorf("user not confirm email")
 	}
 
 	err = u.compareHashAndPassword(user.HashPass, password)
@@ -245,13 +268,15 @@ func changeHTMLValue(email string, class string, newValue string) (error, string
 }
 
 func generateVerificationCode() string {
-	code := make([]string, 6)
-	for i := 0; i < 6; i++ {
-		if rand.Intn(2) == 1 {
-			code[i] = strconv.Itoa(rand.Intn(10))
-		} else {
-			code[i] = string(rune(rand.Intn(128)%26 + 65))
-		}
+	b := make([]byte, entity.LenRegistrationCode)
+
+	_, _ = rand.Read(b)
+
+	code := make([]rune, entity.LenRegistrationCode)
+	for i := range entity.LenRegistrationCode {
+		index := int(b[i]) % len(entity.AllSymbol)
+		code[i] = entity.AllSymbol[index]
 	}
-	return strings.Join(code, "")
+
+	return string(code)
 }

@@ -20,11 +20,11 @@ func NewTokenRepos(redisCli *redis.Client) *TokenRepos {
 }
 
 func (t *TokenRepos) SaveRefreshToken(ctx context.Context, userID int, refreshToken string) {
-	t.cli.Set(ctx, strconv.Itoa(userID), refreshToken, entity.ExpiresDayRefreshToken)
+	t.cli.Set(ctx, "RefreshToken"+strconv.Itoa(userID), refreshToken, entity.ExpiresDayRefreshToken)
 }
 
 func (t *TokenRepos) GetIDByRefreshToken(ctx context.Context, refreshToken string) *int {
-	get := t.cli.Get(ctx, refreshToken)
+	get := t.cli.Get(ctx, "RefreshToken"+refreshToken)
 	if get == nil {
 		return nil
 	}
@@ -38,5 +38,5 @@ func (t *TokenRepos) GetIDByRefreshToken(ctx context.Context, refreshToken strin
 }
 
 func (t *TokenRepos) DeleteRefreshToken(ctx context.Context, refreshToken string) {
-	t.cli.Del(ctx, refreshToken)
+	t.cli.Del(ctx, "RefreshToken"+refreshToken)
 }

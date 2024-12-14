@@ -15,5 +15,4 @@ type repos interface {
 type userRepos interface {
 	InsertUser(ctx context.Context, user models.User) (*int, error)
 	SelectUserByID(ctx context.Context, id int) (*models.User, error)
-	SelectUserByEmail(ctx context.Context, email string) (*models.User, error)
 }

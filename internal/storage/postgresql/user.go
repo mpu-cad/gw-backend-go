@@ -12,8 +12,8 @@ import (
 )
 
 const (
-	SelectUserByID    = `SELECT id, name, surname, last_name, login, email, phone, hash_pass, is_admin, is_blocked FROM "users" WHERE id=$1`
-	SelectUserByEmail = `SELECT id, name, surname, last_name, login, email, phone, hash_pass, is_admin, is_blocked FROM "users" WHERE email=$1`
+	SelectUserByID    = `SELECT id, name, surname, last_name, login, email, phone, hash_pass, is_admin, is_blocked, confirm_email FROM "users" WHERE id=$1`
+	SelectUserByEmail = `SELECT id, name, surname, last_name, login, email, phone, hash_pass, is_admin, is_blocked, confirm_email FROM "users" WHERE login=$1`
 )
 
 type UserRepos struct {
@@ -69,7 +69,7 @@ func (u *UserRepos) SelectUserByID(ctx context.Context, id int) (*models.User, e
 	return u.getUserFromDB(ctx, SelectUserByID, id)
 }
 
-func (u *UserRepos) SelectUserByEmail(ctx context.Context, email string) (*models.User, error) {
+func (u *UserRepos) SelectUserByLogin(ctx context.Context, email string) (*models.User, error) {
 	return u.getUserFromDB(ctx, SelectUserByEmail, email)
 }
 
@@ -87,6 +87,7 @@ func (u *UserRepos) getUserFromDB(ctx context.Context, query string, arg interfa
 			&getUser.HashPass,
 			&getUser.IsAdmin,
 			&getUser.IsBanned,
+			&getUser.ConfirmEmail,
 		)
 
 	if err != nil {
@@ -94,4 +95,17 @@ func (u *UserRepos) getUserFromDB(ctx context.Context, query string, arg interfa
 	}
 
 	return &getUser, nil
+}
+
+func (u *UserRepos) ConfirmEmail(ctx context.Context, userID int) error {
+	tag, err := u.db.Exec(ctx, `UPDATE users SET confirm_email = true WHERE id = $1`, userID)
+	if err != nil {
+		return errors.Wrap(err, "update confirm email")
+	}
+
+	if !tag.Update() {
+		return errors.Wrap(err, "confirm email")
+	}
+
+	return nil
 }

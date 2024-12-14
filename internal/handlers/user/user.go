@@ -2,6 +2,7 @@ package user
 
 import (
 	"net/http"
+	"strconv"
 
 	"github.com/gofiber/fiber/v2"
 
@@ -33,7 +34,7 @@ func (r *Handle) Registration(ctx *fiber.Ctx) error {
 			})
 	}
 
-	_, err = r.userUC.Registration(ctx.Context(), models.User{
+	id, err := r.userUC.Registration(ctx.Context(), models.User{
 		Phone:    data.Phone,
 		Email:    data.Email,
 		LastName: data.LastName,
@@ -51,7 +52,7 @@ func (r *Handle) Registration(ctx *fiber.Ctx) error {
 		})
 	}
 
-	return ctx.Status(http.StatusCreated).Send(nil)
+	return ctx.Status(http.StatusCreated).SendString(strconv.Itoa(*id))
 }
 
 func (r *Handle) Login(ctx *fiber.Ctx) error {
@@ -65,7 +66,7 @@ func (r *Handle) Login(ctx *fiber.Ctx) error {
 		})
 	}
 
-	getUser, err := r.userUC.Login(ctx.Context(), user.Email, user.Password)
+	getUser, err := r.userUC.Login(ctx.Context(), user.Login, user.Password)
 	if err != nil {
 		return ctx.Status(http.StatusBadRequest).JSON(entity.ErrorsRequest{
 			Error:   err.Error(),
@@ -76,8 +77,29 @@ func (r *Handle) Login(ctx *fiber.Ctx) error {
 
 	refreshToken := r.redisUC.CreateRefreshToken(ctx.Context(), getUser.ID)
 
-	ctx.Locals("UserID", getUser.ID)
+	ctx.Locals("UserID", &getUser.ID)
 	ctx.Locals("RefreshToken", refreshToken)
 
 	return ctx.Next()
+}
+
+func (r *Handle) ConfirmEmail(ctx *fiber.Ctx) error {
+	var confirm confirmEmail
+	if err := ctx.BodyParser(&confirm); err != nil {
+		return ctx.Status(http.StatusBadRequest).JSON(entity.ErrorsRequest{
+			Error:   err.Error(),
+			Message: entity.ErrorParseBody,
+			Status:  http.StatusBadRequest,
+		})
+	}
+
+	if err := r.userUC.ConfirmMail(ctx.Context(), confirm.ID, confirm.Code); err != nil {
+		return ctx.Status(http.StatusBadRequest).JSON(entity.ErrorsRequest{
+			Error:   err.Error(),
+			Message: "can not confirm email",
+			Status:  http.StatusBadRequest,
+		})
+	}
+
+	return ctx.SendStatus(http.StatusNoContent)
 }

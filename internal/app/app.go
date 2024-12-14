@@ -10,12 +10,14 @@ import (
 
 	"github.com/mpu-cad/gw-backend-go/internal/configs"
 	"github.com/mpu-cad/gw-backend-go/internal/configure"
-	handle "github.com/mpu-cad/gw-backend-go/internal/handlers/user"
+	handleCourse "github.com/mpu-cad/gw-backend-go/internal/handlers/course"
+	handleUser "github.com/mpu-cad/gw-backend-go/internal/handlers/user"
 	"github.com/mpu-cad/gw-backend-go/internal/logger"
 	"github.com/mpu-cad/gw-backend-go/internal/middleware/log"
 	"github.com/mpu-cad/gw-backend-go/internal/middleware/token"
 	"github.com/mpu-cad/gw-backend-go/internal/storage/postgresql"
 	"github.com/mpu-cad/gw-backend-go/internal/storage/redis"
+	"github.com/mpu-cad/gw-backend-go/internal/usecase/course"
 	"github.com/mpu-cad/gw-backend-go/internal/usecase/mailer"
 	redisUC "github.com/mpu-cad/gw-backend-go/internal/usecase/redis"
 	"github.com/mpu-cad/gw-backend-go/internal/usecase/user"
@@ -50,14 +52,17 @@ func (a *App) Run(ctx context.Context) {
 	// Repos
 	userRepos := postgresql.NewUserRepos(dbPool)
 	redisRepos := redis.NewTokenRepos(redisDB)
+	courseRepos := postgresql.NewCourseRepos(dbPool)
 
 	// UseCase
 	ucMailer := mailer.New(a.cfg.Mailer)
-	ucUser := user.NewUCUser(userRepos, ucMailer)
+	ucUser := user.NewUCUser(userRepos, ucMailer, redisRepos)
 	ucRedis := redisUC.NewUCRepos(redisRepos, userRepos)
+	ucCourse := course.NewUCCourse(courseRepos)
 
 	// Handler
-	userHandler := handle.NewHandleUser(ucUser, ucRedis)
+	userHandler := handleUser.NewHandleUser(ucUser, ucRedis)
+	courseHandler := handleCourse.NewHandleCourse(ucCourse)
 
 	// endpoint
 	api := app.Group("/api")
@@ -67,31 +72,31 @@ func (a *App) Run(ctx context.Context) {
 
 	users.Post("/registration", userHandler.Registration)
 	users.Post("/login", userHandler.Login, token.SignedToken)
+	users.Post("/email/confirm", userHandler.ConfirmEmail)
 
 	// эндпоинты для курсов
-	course := api.Group("/course")
+	courseEndPoints := api.Group("/courseEndPoints")
 
 	// получить все курсы
-	course.Get("", func(ctx *fiber.Ctx) error {
+	courseEndPoints.Get("", func(ctx *fiber.Ctx) error {
 		ctx.Set("Content-Type", "text/html; charset=utf-8")
 		return ctx.Status(http.StatusOK).SendString("<h1>Hello world</h1>")
 	})
+
 	// получить курс по id
-	course.Get("/:id", func(ctx *fiber.Ctx) error {
+	courseEndPoints.Get("/:id", func(ctx *fiber.Ctx) error {
 		ctx.Set("Content-Type", "text/html; charset=utf-8")
 		return ctx.Status(http.StatusOK).SendString("<h1>Hello world</h1>")
 	})
 
-	course.Post("", func(ctx *fiber.Ctx) error {
-		ctx.Set("Content-Type", "text/html; charset=utf-8")
-		return ctx.Status(http.StatusOK).SendString("<h1>Hello world</h1>")
-	}) // создать курс
+	// создать курс
+	courseEndPoints.Post("", courseHandler.CreateCourse)
 
-	course.Delete("/:id", func(ctx *fiber.Ctx) error {
+	courseEndPoints.Delete("/:id", func(ctx *fiber.Ctx) error {
 		ctx.Set("Content-Type", "text/html; charset=utf-8")
 		return ctx.Status(http.StatusOK).SendString("<h1>Hello world</h1>")
 	}) // удалить курс
-	course.Put("/:id", func(ctx *fiber.Ctx) error {
+	courseEndPoints.Put("/:id", func(ctx *fiber.Ctx) error {
 		ctx.Set("Content-Type", "text/html; charset=utf-8")
 		return ctx.Status(http.StatusOK).SendString("<h1>Hello world</h1>")
 	}) // обновить курс

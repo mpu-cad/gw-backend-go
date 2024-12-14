@@ -13,8 +13,8 @@ func GenerateRefreshToken() string {
 
 	token := make([]rune, entity.LenRefreshToken)
 	for i := range entity.LenRefreshToken {
-		index := int(b[i]) % len(entity.RefreshTokenSymbol)
-		token[i] = entity.RefreshTokenSymbol[index]
+		index := int(b[i]) % len(entity.AllSymbol)
+		token[i] = entity.AllSymbol[index]
 	}
 
 	return string(token)

@@ -10,9 +10,15 @@ import (
 type userRepos interface {
 	InsertUser(ctx context.Context, user models.User) (*int, error)
 	SelectUserByID(ctx context.Context, id int) (*models.User, error)
-	SelectUserByEmail(ctx context.Context, email string) (*models.User, error)
+	SelectUserByLogin(ctx context.Context, email string) (*models.User, error)
+	ConfirmEmail(ctx context.Context, userID int) error
 }
 
 type mailer interface {
 	SendEmail(gmail models.Gmail) error
+}
+
+type redis interface {
+	SaveUsersRegistrationCode(ctx context.Context, code string, userID int)
+	GetUsersRegistrationCode(ctx context.Context, userID int) string
 }

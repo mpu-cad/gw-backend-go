@@ -10,6 +10,7 @@ import (
 type userUC interface {
 	Registration(ctx context.Context, request models.User) (*int, error)
 	Login(ctx context.Context, email, password string) (*models.User, error)
+	ConfirmMail(ctx context.Context, userID int, code string) error
 }
 
 type redisUC interface {
