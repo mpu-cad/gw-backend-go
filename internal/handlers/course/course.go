@@ -23,11 +23,21 @@ func NewHandleCourse(courseUC courseUC) *Handle {
 func (h *Handle) CreateCourse(ctx *fiber.Ctx) error {
 	var course models.Course
 	if err := ctx.BodyParser(&course); err != nil {
-		return err
+		return ctx.Status(http.StatusBadRequest).JSON(
+			entity.ErrorsRequest{
+				Error:   err.Error(),
+				Message: entity.ErrorParseBody,
+				Status:  http.StatusBadRequest,
+			})
 	}
 
 	if err := h.courseUC.CreateCourse(ctx.Context(), course); err != nil {
-		return err
+		return ctx.Status(http.StatusBadRequest).JSON(
+			entity.ErrorsRequest{
+				Error:   err.Error(),
+				Message: "internal error",
+				Status:  http.StatusBadRequest,
+			})
 	}
 
 	return ctx.SendStatus(http.StatusCreated)
