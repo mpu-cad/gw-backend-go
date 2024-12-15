@@ -43,7 +43,7 @@ linters:
 
 linters-settings:
   goimports:
-    local-prefixes: "github.com/vpbuyanov/*"
+    local-prefixes: "github.com/* github.com/vpbuyanov/*"
 
   wrapcheck:
     ignorePackageGlobs:

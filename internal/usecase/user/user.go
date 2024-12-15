@@ -180,7 +180,11 @@ func (u *UCUser) Registration(ctx context.Context, request models.User) (*int, e
 </body>
 </html>`
 
-		err, content = changeHTMLValue(content, "code", code)
+		content, err = changeHTMLValue(content, "code", code)
+		if err != nil {
+			logger.Log.Error(err)
+			return
+		}
 
 		if err := u.mailer.SendEmail(models.Gmail{
 			Subject: "Подтверждение пароля",
@@ -217,7 +221,7 @@ func (u *UCUser) Login(ctx context.Context, login, password string) (*models.Use
 	}
 
 	if !user.ConfirmEmail {
-		return nil, fmt.Errorf("user not confirm email")
+		return nil, errors.New("user not confirm email")
 	}
 
 	err = u.compareHashAndPassword(user.HashPass, password)
@@ -245,11 +249,11 @@ func (u *UCUser) compareHashAndPassword(hash, password string) error {
 	return nil
 }
 
-func changeHTMLValue(email string, class string, newValue string) (error, string) {
+func changeHTMLValue(email string, class string, newValue string) (string, error) {
 	// Используем goquery для парсинга HTML-контента из поля Body
 	doc, err := goquery.NewDocumentFromReader(strings.NewReader(email))
 	if err != nil {
-		return err, ""
+		return "", err
 	}
 
 	// Находим элементы с указанным классом
@@ -261,10 +265,10 @@ func changeHTMLValue(email string, class string, newValue string) (error, string
 	// Обновляем значение в поле Body структуры Email
 	htmlContent, err := doc.Html()
 	if err != nil {
-		return err, ""
+		return "", err
 	}
 
-	return nil, htmlContent
+	return htmlContent, nil
 }
 
 func generateVerificationCode() string {

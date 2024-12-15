@@ -3,6 +3,10 @@ package postgresql
 import (
 	"context"
 
+	"github.com/mpu-cad/gw-backend-go/internal/logger"
+
+	"github.com/pkg/errors"
+
 	"github.com/jackc/pgx/v4/pgxpool"
 
 	"github.com/mpu-cad/gw-backend-go/internal/models"
@@ -23,7 +27,8 @@ func (r *CourseRepos) InsertArticle(ctx context.Context, articleId, courseId int
 		INSERT INTO course_articles (course_id, article_id) 
 		VALUES ($1, $2)
 	`, courseId, articleId)
-	return err
+
+	return errors.Wrap(err, "insert article")
 }
 
 func (r *CourseRepos) SelectAllArticlesByCourseID(ctx context.Context, courseId int) ([]models.Article, error) {
@@ -36,15 +41,19 @@ func (r *CourseRepos) SelectAllArticlesByCourseID(ctx context.Context, courseId 
 		GROUP BY a.id
 	`, courseId)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "select article")
 	}
 	defer rows.Close()
 
 	var articles []models.Article
 	for rows.Next() {
 		var article models.Article
-		if err := rows.Scan(&article.ID, &article.Title, &article.Text, &article.Tags); err != nil {
-			return nil, err
+		if err = rows.Scan(
+			&article.ID,
+			&article.Title,
+			&article.Text,
+			&article.Tags); err != nil {
+			return nil, errors.Wrap(err, "scan article")
 		}
 		articles = append(articles, article)
 	}
@@ -57,7 +66,11 @@ func (r *CourseRepos) UpdateArticle(ctx context.Context, article models.Article)
 		return err
 	}
 
-	defer tx.Rollback(ctx)
+	defer func() {
+		if err = tx.Rollback(ctx); err != nil {
+			logger.Log.Errorf("tx rollback, err: %v", err)
+		}
+	}()
 
 	_, err = tx.Exec(ctx, `
 		UPDATE articles 
@@ -65,14 +78,14 @@ func (r *CourseRepos) UpdateArticle(ctx context.Context, article models.Article)
 		WHERE id = $3
 	`, article.Title, article.Text, article.ID)
 	if err != nil {
-		return err
+		return errors.Wrap(err, "update article")
 	}
 
 	_, err = tx.Exec(ctx, `
 		DELETE FROM article_tags WHERE article_id = $1
 	`, article.ID)
 	if err != nil {
-		return err
+		return errors.Wrap(err, "delete tags article")
 	}
 
 	for _, tag := range article.Tags {
@@ -81,7 +94,7 @@ func (r *CourseRepos) UpdateArticle(ctx context.Context, article models.Article)
 			VALUES ($1, $2)
 		`, article.ID, tag)
 		if err != nil {
-			return err
+			return errors.Wrap(err, "insert tags article")
 		}
 	}
 
@@ -90,5 +103,5 @@ func (r *CourseRepos) UpdateArticle(ctx context.Context, article models.Article)
 
 func (r *CourseRepos) DeleteArticle(ctx context.Context, articleId int) error {
 	_, err := r.db.Exec(ctx, `DELETE FROM articles WHERE id = $1`, articleId)
-	return err
+	return errors.Wrap(err, "delete article")
 }

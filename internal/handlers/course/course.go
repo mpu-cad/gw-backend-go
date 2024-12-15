@@ -1,12 +1,12 @@
 package course
 
 import (
-	"github.com/mpu-cad/gw-backend-go/internal/entity"
 	"net/http"
 	"strconv"
 
 	"github.com/gofiber/fiber/v2"
 
+	"github.com/mpu-cad/gw-backend-go/internal/entity"
 	"github.com/mpu-cad/gw-backend-go/internal/models"
 )
 
@@ -59,7 +59,6 @@ func (h *Handle) GetAllCourses(ctx *fiber.Ctx) error {
 					Status:  http.StatusBadRequest,
 				})
 		}
-
 	}
 
 	var intPage int
@@ -105,7 +104,6 @@ func (h *Handle) GetCourseByID(ctx *fiber.Ctx) error {
 
 	course, err := h.courseUC.GetCourseByID(ctx.Context(), paramsInt)
 	if err != nil {
-
 		return ctx.Status(http.StatusInternalServerError).JSON(
 			entity.ErrorsRequest{
 				Error:   err.Error(),

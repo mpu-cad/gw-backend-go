@@ -24,14 +24,8 @@ func NewCourseRepos(db *pgxpool.Pool) *CourseRepos {
 func (r *CourseRepos) InsertCourse(ctx context.Context, course models.Course) error {
 	tx, err := r.db.Begin(ctx)
 	if err != nil {
-		return err
+		return errors.Wrap(err, "begin tx")
 	}
-
-	defer func() {
-		if err = tx.Rollback(ctx); err != nil {
-			logger.Log.Errorf("tx rollback, err: %v", err)
-		}
-	}()
 
 	row := tx.QueryRow(
 		ctx,
@@ -49,7 +43,7 @@ func (r *CourseRepos) InsertCourse(ctx context.Context, course models.Course) er
 	var id int
 	err = row.Scan(&id)
 	if err != nil {
-		return err
+		return errors.Wrap(err, "scan id")
 	}
 
 	for _, tag := range course.Tags {
@@ -73,7 +67,7 @@ func (r *CourseRepos) InsertCourse(ctx context.Context, course models.Course) er
 	}
 
 	if err = tx.Commit(ctx); err != nil {
-		return err
+		return errors.Wrap(err, "commit")
 	}
 
 	return nil
@@ -121,7 +115,7 @@ func (r *CourseRepos) SelectCourseByID(ctx context.Context, id int) (*models.Cou
 			return nil, nil
 		}
 
-		return nil, err
+		return nil, errors.Wrap(err, "delete courses")
 	}
 
 	rows, err := r.db.Query(ctx, `
@@ -137,14 +131,14 @@ func (r *CourseRepos) SelectCourseByID(ctx context.Context, id int) (*models.Cou
 			return &course, nil
 		}
 
-		return nil, err
+		return nil, errors.Wrap(err, "select courses article")
 	}
 	defer rows.Close()
 
 	for rows.Next() {
 		var article models.Article
 		if err := rows.Scan(&article.ID, &article.Title, &article.Text, &article.Tags); err != nil {
-			return nil, err
+			return nil, errors.Wrap(err, "scan course")
 		}
 
 		course.Articles = append(course.Articles, article)
@@ -156,9 +150,14 @@ func (r *CourseRepos) SelectCourseByID(ctx context.Context, id int) (*models.Cou
 func (r *CourseRepos) UpdateCourse(ctx context.Context, course models.Course) error {
 	tx, err := r.db.Begin(ctx)
 	if err != nil {
-		return err
+		return errors.Wrap(err, "begin tx")
 	}
-	defer tx.Rollback(ctx)
+
+	defer func() {
+		if err = tx.Rollback(ctx); err != nil {
+			logger.Log.Errorf("tx rollback, err: %v", err)
+		}
+	}()
 
 	_, err = tx.Exec(ctx, `
 		UPDATE courses 
@@ -166,14 +165,14 @@ func (r *CourseRepos) UpdateCourse(ctx context.Context, course models.Course) er
 		WHERE id = $4
 	`, course.Title, course.Description, course.Poster, course.ID)
 	if err != nil {
-		return err
+		return errors.Wrap(err, "update courses")
 	}
 
 	_, err = tx.Exec(ctx, `
 		DELETE FROM course_tags WHERE course_id = $1
 	`, course.ID)
 	if err != nil {
-		return err
+		return errors.Wrap(err, "delete tags courses")
 	}
 
 	for _, tag := range course.Tags {
@@ -182,7 +181,7 @@ func (r *CourseRepos) UpdateCourse(ctx context.Context, course models.Course) er
 			VALUES ($1, $2)
 		`, course.ID, tag)
 		if err != nil {
-			return err
+			return errors.Wrap(err, "insert tags courses")
 		}
 	}
 
@@ -191,5 +190,5 @@ func (r *CourseRepos) UpdateCourse(ctx context.Context, course models.Course) er
 
 func (r *CourseRepos) DeleteCourse(ctx context.Context, id int) error {
 	_, err := r.db.Exec(ctx, `DELETE FROM courses WHERE id = $1`, id)
-	return err
+	return errors.Wrap(err, "delete courses")
 }
