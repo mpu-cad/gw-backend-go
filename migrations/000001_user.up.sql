@@ -1,14 +1,14 @@
-CREATE TABLE IF NOT EXISTS "users"
+create table if not exists "users"
 (
-    id            SERIAL       NOT NULL PRIMARY KEY,
-    name          VARCHAR(50)  NOT NULL,
-    surname       VARCHAR(50)  NOT NULL,
-    last_name     VARCHAR(50)  NOT NULL,
-    login         VARCHAR(100) NOT NULL UNIQUE,
-    email         VARCHAR(100) NOT NULL UNIQUE,
-    phone         VARCHAR(11)  NOT NULL UNIQUE,
-    hash_pass     VARCHAR(100) NOT NULL,
-    is_admin      BOOLEAN DEFAULT FALSE,
-    is_blocked    BOOLEAN DEFAULT FALSE,
-    confirm_email BOOLEAN DEFAULT FALSE
+    id            serial       not null primary key,
+    name          varchar(50)  not null,
+    surname       varchar(50)  not null,
+    last_name     varchar(50)  not null,
+    login         varchar(100) not null unique,
+    email         varchar(100) not null unique,
+    phone         varchar(11)  not null unique,
+    hash_pass     varchar(100) not null,
+    is_admin      boolean default false,
+    is_blocked    boolean default false,
+    confirm_email boolean default false
 );

@@ -2,8 +2,6 @@ package app
 
 import (
 	"context"
-	"net/http"
-
 	"github.com/gofiber/fiber/v2"
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
@@ -53,6 +51,7 @@ func (a *App) Run(ctx context.Context) {
 	userRepos := postgresql.NewUserRepos(dbPool)
 	redisRepos := redis.NewTokenRepos(redisDB)
 	courseRepos := postgresql.NewCourseRepos(dbPool)
+	_ = postgresql.NewArticleRepos(dbPool)
 
 	// UseCase
 	ucMailer := mailer.New(a.cfg.Mailer)
@@ -75,37 +74,27 @@ func (a *App) Run(ctx context.Context) {
 	users.Post("/email/confirm", userHandler.ConfirmEmail)
 
 	// эндпоинты для курсов
-	courseEndPoints := api.Group("/courseEndPoints")
-
-	// получить все курсы
-	courseEndPoints.Get("", func(ctx *fiber.Ctx) error {
-		ctx.Set("Content-Type", "text/html; charset=utf-8")
-		return ctx.Status(http.StatusOK).SendString("<h1>Hello world</h1>")
-	})
-
-	// получить курс по id
-	courseEndPoints.Get("/:id", func(ctx *fiber.Ctx) error {
-		ctx.Set("Content-Type", "text/html; charset=utf-8")
-		return ctx.Status(http.StatusOK).SendString("<h1>Hello world</h1>")
-	})
+	courseEndPoints := api.Group("/course")
 
 	// создать курс
 	courseEndPoints.Post("", courseHandler.CreateCourse)
 
-	courseEndPoints.Delete("/:id", func(ctx *fiber.Ctx) error {
-		ctx.Set("Content-Type", "text/html; charset=utf-8")
-		return ctx.Status(http.StatusOK).SendString("<h1>Hello world</h1>")
-	}) // удалить курс
-	courseEndPoints.Put("/:id", func(ctx *fiber.Ctx) error {
-		ctx.Set("Content-Type", "text/html; charset=utf-8")
-		return ctx.Status(http.StatusOK).SendString("<h1>Hello world</h1>")
-	}) // обновить курс
+	// получить все курсы
+	courseEndPoints.Get("/", courseHandler.GetAllCourses)
+
+	// получить курс по id
+	courseEndPoints.Get("/:id", courseHandler.GetCourseByID)
+
+	// удалить курс
+	courseEndPoints.Delete("/:id", courseHandler.DeleteCourse)
+
+	// обновить курс
+	courseEndPoints.Put("/:id", courseHandler.UpdateCourse)
 
 	// эндпоинты для статьей
-	api.Group("/article", func(ctx *fiber.Ctx) error {
-		ctx.Set("Content-Type", "text/html; charset=utf-8")
-		return ctx.Status(http.StatusOK).SendString("<h1>Hello world</h1>")
-	})
+	articleEndPoints := courseEndPoints.Group("/:id/article")
+
+	articleEndPoints.Post("", nil)
 
 	err := app.Listen(a.cfg.Server.String())
 	if err != nil {

@@ -1,6 +1,6 @@
 package entity
 
-import "errors"
+import "github.com/pkg/errors"
 
 const (
 	ErrorParseBody = "can not parse body"
