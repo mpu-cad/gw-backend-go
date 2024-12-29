@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/recover"
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 
@@ -35,6 +36,7 @@ func New(cfg *configs.Config) *App {
 func (a *App) Run(ctx context.Context) {
 	app := fiber.New()
 	app.Use(log.New())
+	app.Use(recover.New())
 
 	logger.InitLogger(a.cfg.Logger)
 
