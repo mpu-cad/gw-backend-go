@@ -1,6 +1,9 @@
 package logger
 
 import (
+	"io"
+	"os"
+
 	"github.com/mattn/go-colorable"
 	"github.com/sirupsen/logrus"
 
@@ -20,7 +23,7 @@ func InitLogger(cfg configs.Logger) {
 		},
 	})
 
-	logrus.SetOutput(colorable.NewColorableStdout())
+	Log.SetOutput(colorable.NewColorableStdout())
 
 	if cfg.LogLevel == "" {
 		cfg.LogLevel = "info"
@@ -32,4 +35,14 @@ func InitLogger(cfg configs.Logger) {
 	}
 
 	Log.Infof("log level set to %v", cfg.LogLevel)
+
+	if cfg.LogFile != "" {
+		file, err := os.OpenFile(cfg.LogFile, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0666)
+		if err != nil {
+			Log.Panicf("failed to open log file: %v", err)
+		}
+
+		multiWriter := io.MultiWriter(file, colorable.NewColorableStdout())
+		Log.SetOutput(multiWriter)
+	}
 }

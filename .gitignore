@@ -20,3 +20,5 @@ golangci-lint
 /deploy/config.yaml
 
 /bin
+
+/*.log

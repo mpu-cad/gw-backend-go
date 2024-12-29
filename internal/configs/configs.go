@@ -23,7 +23,8 @@ type (
 	}
 
 	Logger struct {
-		LogLevel string `yaml:"log_level"`
+		LogLevel string `yaml:"level"`
+		LogFile  string `yaml:"file"`
 	}
 
 	Mailer struct {

@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/jackc/pgx/v4/pgxpool"
+
 	"github.com/mpu-cad/gw-backend-go/internal/configs"
 )
 
