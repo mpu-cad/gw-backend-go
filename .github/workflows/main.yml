@@ -109,4 +109,4 @@ jobs:
             
             docker rmi -f $(docker images -aq)
             
-            docker compose up -d
+            docker compose up backend -d

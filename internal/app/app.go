@@ -8,8 +8,11 @@ import (
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 
+	"github.com/mpu-cad/gw-backend-go/internal/usecase/article"
+
 	"github.com/mpu-cad/gw-backend-go/internal/configs"
 	"github.com/mpu-cad/gw-backend-go/internal/configure"
+	handleArticle "github.com/mpu-cad/gw-backend-go/internal/handlers/article"
 	handleCourse "github.com/mpu-cad/gw-backend-go/internal/handlers/course"
 	handleUser "github.com/mpu-cad/gw-backend-go/internal/handlers/user"
 	"github.com/mpu-cad/gw-backend-go/internal/logger"
@@ -40,7 +43,7 @@ func (a *App) Run(ctx context.Context) {
 
 	logger.InitLogger(a.cfg.Logger)
 
-	// DB
+	// Подключение к разным БД
 	dbPool := configure.Postgres(ctx, a.cfg.Postgres)
 	defer dbPool.Close()
 
@@ -50,33 +53,35 @@ func (a *App) Run(ctx context.Context) {
 
 	redisDB := configure.Redis(a.cfg.Redis)
 
-	// Repos
+	// Слой работы с базой данных
 	userRepos := postgresql.NewUserRepos(dbPool)
 	redisRepos := redis.NewTokenRepos(redisDB)
 	courseRepos := postgresql.NewCourseRepos(dbPool)
-	_ = postgresql.NewArticleRepos(dbPool)
+	articleRepos := postgresql.NewArticleRepos(dbPool)
 
-	// UseCase
+	// Слой логики приложения
 	ucMailer := mailer.New(a.cfg.Mailer)
 	ucUser := user.NewUCUser(userRepos, ucMailer, redisRepos)
 	ucRedis := redisUC.NewUCRepos(redisRepos, userRepos)
 	ucCourse := course.NewUCCourse(courseRepos)
+	ucArticle := article.NewArticleUC(articleRepos)
 
-	// Handler
+	// Слой обработчиков запросов
 	userHandler := handleUser.NewHandleUser(ucUser, ucRedis)
 	courseHandler := handleCourse.NewHandleCourse(ucCourse)
+	articleHandler := handleArticle.NewHandleArticle(ucArticle)
 
 	// endpoint
 	api := app.Group("/api")
 
-	// эндпоинты для юзеров
+	// эндпоинты для юзеров /api/user
 	users := api.Group("/user")
 
 	users.Post("/registration", userHandler.Registration)
 	users.Post("/login", userHandler.Login, token.SignedToken)
 	users.Post("/email/confirm", userHandler.ConfirmEmail)
 
-	// эндпоинты для курсов
+	// эндпоинты для курсов /api/course
 	courseEndPoints := api.Group("/course")
 
 	// создать курс
@@ -86,18 +91,28 @@ func (a *App) Run(ctx context.Context) {
 	courseEndPoints.Get("/", courseHandler.GetAllCourses)
 
 	// получить курс по id
-	courseEndPoints.Get("/:id", courseHandler.GetCourseByID)
+	courseEndPoints.Get("/:course_id", courseHandler.GetCourseByID)
 
 	// удалить курс
-	courseEndPoints.Delete("/:id", courseHandler.DeleteCourse)
+	courseEndPoints.Delete("/:course_id", courseHandler.DeleteCourse)
 
 	// обновить курс
-	courseEndPoints.Put("/:id", courseHandler.UpdateCourse)
+	courseEndPoints.Put("/:course_id", courseHandler.UpdateCourse)
 
-	// эндпоинты для статьей
+	// эндпоинты для статьей /api/course/:course_id/article
 	articleEndPoints := courseEndPoints.Group("/:id/article")
 
-	articleEndPoints.Post("", nil)
+	// создать статью
+	articleEndPoints.Post("/", articleHandler.CreateArticle)
+
+	// получить все статьи по курсу
+	articleEndPoints.Post("/", articleHandler.GetAllArticleByCourseID)
+
+	// обновить статью
+	articleEndPoints.Post("/:article_id", articleHandler.UpdateArticle)
+
+	// удалить статью
+	articleEndPoints.Post("/:article_id", articleHandler.UpdateArticle)
 
 	err := app.Listen(a.cfg.Server.String())
 	if err != nil {

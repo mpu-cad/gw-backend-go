@@ -185,6 +185,7 @@ func (r *CourseRepos) UpdateCourse(ctx context.Context, course models.Course) er
 		}
 	}
 
+	//nolint:wrapcheck
 	return tx.Commit(ctx)
 }
 

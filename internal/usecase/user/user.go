@@ -253,7 +253,7 @@ func changeHTMLValue(email string, class string, newValue string) (string, error
 	// Используем goquery для парсинга HTML-контента из поля Body
 	doc, err := goquery.NewDocumentFromReader(strings.NewReader(email))
 	if err != nil {
-		return "", err
+		return "", errors.Wrap(err, "can not parse html content")
 	}
 
 	// Находим элементы с указанным классом
@@ -265,7 +265,7 @@ func changeHTMLValue(email string, class string, newValue string) (string, error
 	// Обновляем значение в поле Body структуры Email
 	htmlContent, err := doc.Html()
 	if err != nil {
-		return "", err
+		return "", errors.Wrap(err, "can not get html content")
 	}
 
 	return htmlContent, nil

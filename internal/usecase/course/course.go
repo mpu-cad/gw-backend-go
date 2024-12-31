@@ -3,6 +3,8 @@ package course
 import (
 	"context"
 
+	"github.com/pkg/errors"
+
 	"github.com/mpu-cad/gw-backend-go/internal/models"
 )
 
@@ -17,6 +19,7 @@ func NewUCCourse(courseRepos courseRepos) *UCCourse {
 }
 
 func (c *UCCourse) CreateCourse(ctx context.Context, course models.Course) error {
+	//nolint:wrapcheck
 	return c.courseRepos.InsertCourse(ctx, course)
 }
 
@@ -27,20 +30,23 @@ func (c *UCCourse) GetAllCourses(ctx context.Context, limit, offset int) ([]mode
 
 	courses, err := c.courseRepos.SelectAllCourses(ctx, limit, offset)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "select all courses")
 	}
 
 	return courses, nil
 }
 
 func (c *UCCourse) GetCourseByID(ctx context.Context, id int) (*models.Course, error) {
+	//nolint:wrapcheck
 	return c.courseRepos.SelectCourseByID(ctx, id)
 }
 
 func (c *UCCourse) UpdateCourse(ctx context.Context, course models.Course) error {
+	//nolint:wrapcheck
 	return c.courseRepos.UpdateCourse(ctx, course)
 }
 
 func (c *UCCourse) DeleteCourse(ctx context.Context, id int) error {
+	//nolint:wrapcheck
 	return c.courseRepos.DeleteCourse(ctx, id)
 }

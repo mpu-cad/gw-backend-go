@@ -12,6 +12,10 @@ import (
 
 var Log = logrus.New()
 
+const (
+	fileMode = 0666
+)
+
 func InitLogger(cfg configs.Logger) {
 	Log.SetFormatter(&logrus.JSONFormatter{
 		TimestampFormat: "02-01-2006 15:04:05.000",
@@ -37,7 +41,7 @@ func InitLogger(cfg configs.Logger) {
 	Log.Infof("log level set to %v", cfg.LogLevel)
 
 	if cfg.LogFile != "" {
-		file, err := os.OpenFile(cfg.LogFile, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0666)
+		file, err := os.OpenFile(cfg.LogFile, os.O_APPEND|os.O_CREATE|os.O_WRONLY, fileMode)
 		if err != nil {
 			Log.Panicf("failed to open log file: %v", err)
 		}
